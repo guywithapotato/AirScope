@@ -91,33 +91,49 @@ enum TCPProbe {
             let queue = DispatchQueue(label: "airscope.tcp.probe.\(host)")
             let connection = NWConnection(host: NWEndpoint.Host(host), port: NWEndpoint.Port(rawValue: port)!, using: .tcp)
             let startedAt = ContinuousClock.now
-            var didResume = false
-
-            func finish(_ value: Double?) {
-                guard !didResume else { return }
-                didResume = true
-                connection.cancel()
-                continuation.resume(returning: value)
-            }
+            let gate = ContinuationGate(continuation: continuation)
 
             connection.stateUpdateHandler = { state in
                 switch state {
                 case .ready:
                     let duration = startedAt.duration(to: ContinuousClock.now)
                     let milliseconds = Double(duration.components.seconds * 1_000) + Double(duration.components.attoseconds) / 1_000_000_000_000_000
-                    finish(milliseconds)
+                    gate.resume(milliseconds)
+                    connection.cancel()
                 case .failed, .cancelled:
-                    finish(nil)
+                    gate.resume(nil)
+                    connection.cancel()
                 default:
                     break
                 }
             }
 
             queue.asyncAfter(deadline: .now() + timeout) {
-                finish(nil)
+                gate.resume(nil)
+                connection.cancel()
             }
 
             connection.start(queue: queue)
         }
+    }
+}
+
+private final class ContinuationGate: @unchecked Sendable {
+    private let lock = NSLock()
+    private var didResume = false
+    private var continuation: CheckedContinuation<Double?, Never>?
+
+    init(continuation: CheckedContinuation<Double?, Never>) {
+        self.continuation = continuation
+    }
+
+    func resume(_ value: Double?) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        guard !didResume else { return }
+        didResume = true
+        continuation?.resume(returning: value)
+        continuation = nil
     }
 }

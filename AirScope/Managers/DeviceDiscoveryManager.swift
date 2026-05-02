@@ -19,15 +19,18 @@ final class DeviceDiscoveryManager: ObservableObject {
             let browser = NWBrowser(for: .bonjour(type: type, domain: nil), using: .tcp)
 
             browser.browseResultsChangedHandler = { [weak self] results, _ in
+                guard let manager = self else { return }
+                let results = Array(results)
                 Task { @MainActor in
-                    self?.merge(results: Array(results), serviceType: type)
+                    manager.merge(results: results, serviceType: type)
                 }
             }
 
             browser.stateUpdateHandler = { [weak self] state in
+                guard let manager = self else { return }
                 Task { @MainActor in
                     if case .failed = state {
-                        self?.isScanning = false
+                        manager.isScanning = false
                     }
                 }
             }

@@ -21,8 +21,9 @@ final class NetworkManager: NSObject, ObservableObject {
 
     func start() {
         monitor.pathUpdateHandler = { [weak self] path in
+            guard let manager = self else { return }
             Task { @MainActor in
-                self?.refresh(using: path)
+                manager.refresh(using: path)
             }
         }
         monitor.start(queue: monitorQueue)
