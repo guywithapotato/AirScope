@@ -8,11 +8,9 @@ struct BluetoothDevice: Identifiable, Hashable {
     var lastSeen: Date
 
     var signalBars: Int {
-        switch rssi {
-        case -55...: return 4
-        case -70 ... -56: return 3
-        case -85 ... -71: return 2
-        default: return 1
-        }
+        if rssi >= -55 { return 4 }
+        if rssi >= -70 { return 3 }
+        if rssi >= -85 { return 2 }
+        return 1
     }
 }
