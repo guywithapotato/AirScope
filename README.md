@@ -1,4 +1,4 @@
-# before starting if you clone ts u gay
+# pls dont steal if u steal u gay
 
 # AirScope
 
