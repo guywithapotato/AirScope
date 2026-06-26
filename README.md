@@ -1,6 +1,8 @@
+# before starting if you clone ts u gay
+
 # AirScope
 
-AirScope is a polished SwiftUI iOS app for local network visibility, Bonjour discovery, BLE scanning, and live latency monitoring.
+networking shit
 
 ## What is included
 
@@ -20,6 +22,7 @@ On macOS with Xcode installed, open:
 ```text
 AirScope.xcodeproj
 ```
+(obviously)
 
 Then choose an iPhone simulator and press Run.
 
